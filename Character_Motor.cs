@@ -9,10 +9,10 @@ public class Character_Motor : MonoBehaviour {
 	
 	public static	Character_Motor Instance;
 	public Vector3	MoveVector;
-	public float	TerminalVelocity;
-	public float	JumpVelocity;
-	public float	Speed;
-	public float	Gravity;
+	public float	TerminalVelocity = 50f;
+	public float	JumpVelocity = 80f;
+	public float	Speed = 10f;
+	public float	Gravity = 9.8f;
 	public bool		IsJumping;
 	
 	void Awake()

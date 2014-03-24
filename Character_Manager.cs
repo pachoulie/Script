@@ -10,7 +10,7 @@ using System.Collections;
 public class Character_Manager : MonoBehaviour {
 	
 	public static Character_Manager 	Instance;
-	public float						DeadZone;
+	public float						DeadZone = 0.1f;
 	public CharacterController			CharacterControllerComponent;
 	
 	
