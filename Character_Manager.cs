@@ -37,12 +37,12 @@ public class Character_Manager : MonoBehaviour {
 	void ControllerInput() {
 		//Zeros out the Instance variable MoveVector except the y Axis
 		Character_Motor.Instance.MoveVector.x = 0;
-		Character_Motor.Instance.MoveVector.y = 0;
+		Character_Motor.Instance.MoveVector.z = 0;
 
 		//Check if the vertical axis is outside the deadZone
 		//Add this motion to the MoveVector
 		if (Input.GetAxis("Vertical") > DeadZone || Input.GetAxis("Vertical") < -DeadZone)
-			Character_Motor.Instance.MoveVector.y = Input.GetAxis("Vertical");
+			Character_Motor.Instance.MoveVector.z = Input.GetAxis("Vertical");
 
 		//Check if the horizontal axis is outside the deadZone
 		//Add this motion to the MoveVector
