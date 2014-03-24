@@ -7,7 +7,7 @@ public static class ExtensionMethods
 	//Inverting Y and Z axis in order to handle inverted 3D models
 	public static Vector3 InvertYZ(this Vector3 vec)
 	{
-		vec = new Vector3 (vec.x, vec.z, vec.y);
+		vec = new Vector3 (vec.x, -vec.z, vec.y);
 		return vec;
 	}
 }
