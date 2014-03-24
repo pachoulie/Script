@@ -31,15 +31,15 @@ public class Character_Motor : MonoBehaviour {
 	
 	public void ProcessMotion()
 {
-		// Save MoveVector.y and reapply as VerticalVelocity
+		// Save MoveVector.z and reapply as VerticalVelocity
 		ApplyGravity();
 
 
 		//Convert Vector to World Space
 		var WorldPosition = transform.TransformDirection(MoveVector);
 
-		float savedY = WorldPosition.y;
-		WorldPosition.y = 0;
+		float savedZ = WorldPosition.z;
+		WorldPosition.z = 0;
 
 		float magnitude = WorldPosition.sqrMagnitude;
 
@@ -52,7 +52,7 @@ public class Character_Motor : MonoBehaviour {
 		//Multiply magnifier
 		WorldPosition = WorldPosition * Speed;
 
-		WorldPosition.y = savedY;
+		WorldPosition.z = savedZ;
 
 		//Convert to unit/second
 		WorldPosition *= Time.deltaTime;
@@ -73,16 +73,16 @@ public class Character_Motor : MonoBehaviour {
 		//If yes, apply gravity 
 		//Check if the character is grounded, if it is then apply a small amount of gravity
 		if (Character_Manager.Instance.CharacterControllerComponent.isGrounded) {
-			if (IsJumping)
-				IsJumping = false;
-			else
-				MoveVector.y = 0.01f;
-		}
-		else if (MoveVector.y > -TerminalVelocity)
+						if (IsJumping)
+								IsJumping = false;
+						else
+								MoveVector.z = 0.01f;
+				} 
+		else if (MoveVector.z > -TerminalVelocity)
 		{
-			MoveVector.y -= Gravity;
-			if (MoveVector.y < -TerminalVelocity)
-				MoveVector.y = -TerminalVelocity;
+			MoveVector.z -= Gravity;
+			if (MoveVector.z < -TerminalVelocity)
+				MoveVector.z = -TerminalVelocity;
 		}
 
 	}
@@ -92,7 +92,7 @@ public class Character_Motor : MonoBehaviour {
 		//If it is, move our character (VerticalVelocity)
 		if (Character_Manager.Instance.CharacterControllerComponent.isGrounded)
 		{
-			MoveVector.y = JumpVelocity;
+			MoveVector.z = JumpVelocity;
 			IsJumping = true;
 		}
 	}
