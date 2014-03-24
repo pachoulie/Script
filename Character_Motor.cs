@@ -74,8 +74,6 @@ public class Character_Motor : MonoBehaviour {
 
 
 		//Move character
-//		if (InvertedModel) // Invert Z and Y for inverted 3d models
-//			WorldPosition = WorldPosition.InvertYZ ();
 		Character_Manager.Instance.CharacterControllerComponent.Move(WorldPosition);
 	}
 	
