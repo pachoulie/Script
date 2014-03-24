@@ -10,4 +10,10 @@ public static class ExtensionMethods
 		vec = new Vector3 (vec.x, -vec.z, vec.y);
 		return vec;
 	}
+
+	public static Vector3 RevertYZ(this Vector3 vec)
+	{
+		vec = new Vector3 (vec.x, vec.z, -vec.y);
+		return vec;
+	}
 }

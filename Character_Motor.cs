@@ -42,9 +42,15 @@ public class Character_Motor : MonoBehaviour {
 
 		//Convert Vector to World Space
 		Vector3 WorldPosition;
-		if (InvertedModel) // Invert Z and Y for inverted 3d models
-				MoveVector = MoveVector.InvertYZ ();
-		WorldPosition = transform.TransformDirection (MoveVector);
+
+		// If model is inverted then invert Z and Y get world position and revert Z and Y
+		if (InvertedModel) {
+			MoveVector = MoveVector.InvertYZ ();
+			WorldPosition = transform.TransformDirection (MoveVector);
+			MoveVector = MoveVector.RevertYZ ();
+		} else {
+			WorldPosition = transform.TransformDirection (MoveVector);
+		}
 
 		float savedY = WorldPosition.y;
 		WorldPosition.y = 0;
@@ -68,6 +74,8 @@ public class Character_Motor : MonoBehaviour {
 
 
 		//Move character
+//		if (InvertedModel) // Invert Z and Y for inverted 3d models
+//			WorldPosition = WorldPosition.InvertYZ ();
 		Character_Manager.Instance.CharacterControllerComponent.Move(WorldPosition);
 	}
 	
@@ -85,7 +93,7 @@ public class Character_Motor : MonoBehaviour {
 								IsJumping = false;
 						else
 								MoveVector.y = 0.01f;
-				} 
+		} 
 		else if (MoveVector.y > -TerminalVelocity)
 		{
 			MoveVector.y -= Gravity;
