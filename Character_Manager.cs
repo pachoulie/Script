@@ -17,6 +17,7 @@ public class Character_Manager : MonoBehaviour {
 	void Awake()
 	{
 		Instance = this;
+		Camera_Manager.InitialCameraCheck();
 	}
 	
 	void Update()
