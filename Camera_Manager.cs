@@ -5,11 +5,13 @@ public class Camera_Manager : MonoBehaviour {
 	
 	public static Camera_Manager Instance;
 	public Transform TargetLookAt;
+
 	private float minY = 1;
 	private float maxY = 100;
 	private float minZ = 1;
 	private float maxZ = 100;
 	private Vector3 ValidCamPos;
+	
 	private Vector2 MouseAxis;
 	
 	void Awake()
@@ -27,13 +29,16 @@ public class Camera_Manager : MonoBehaviour {
 			Mathf.Clamp(ValidCamPos.y, minY, maxY),
 			Mathf.Clamp(ValidCamPos.z, minZ, maxZ)
 		);
+		Camera.mainCamera.transform.LookAt(TargetLookAt);
 		InitialCameraPosition();
 	}
 	
 	void InitialCameraPosition() {
 		// Set the default value for both mouse axis
-		MouseAxis = new Vector2();		
+		MouseAxis = new Vector2(); // SET TO 0
+		
 		// Set the validated initial camera position
+		Camera.mainCamera.transform.position = ValidCamPos;
 	}
 	
 	// Update is called once per frame
@@ -48,7 +53,16 @@ public class Camera_Manager : MonoBehaviour {
 	void VerifyUserMouseInput ()
 	{
 		// Check if the right mouse button is depressed (not required but useful for easy debugging)
-		// Rotates the camera based on the users inputs
+		if (!Input.GetMouseButtonDown(1)) { // DOESN T WORK
+			// Rotates the camera based on the users inputs
+				// SET THE TARGET AS PIVOT POINT
+				// ROTATE
+				// LOOK AT THE TARGET
+			
+			// DEBUG
+			Camera.mainCamera.transform.RotateAround(TargetLookAt.position, Vector3.up, -20 * Time.deltaTime); // Positive or negative for left or right
+			Camera.mainCamera.transform.RotateAround(TargetLookAt.position, Vector3.left, 20 * Time.deltaTime); // Positive or negative for left or right			
+		}
 	}
 
 	
