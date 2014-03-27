@@ -51,7 +51,7 @@ public class Camera_Manager : MonoBehaviour {
 		}
 
 		// Clamp/limit mouseY, store the result in the appropriate variable
-		mouseY = LimitCameraPosition (mouseY, MinY, MaxY);
+		mouseY = Helper.CameraClamp(mouseY, MinY, MaxY);
 
 		Vector3 direction = new Vector3 (0, 0, -Dist);
 		Quaternion rotation = Quaternion.Euler (mouseY, mouseX, 0);	
@@ -60,16 +60,6 @@ public class Camera_Manager : MonoBehaviour {
 		// Update Position
 		transform.position = position;
 		transform.LookAt (TargetLookAt);
-	}
-	
-	private float LimitCameraPosition (float angle, float min, float max) {
-    	while (angle < -360) {
-        	angle += 360;
-		}
-	    if (angle > 360) {
-	        angle %= 360;
-		}
-	    return Mathf.Clamp (angle, min, max);
 	}
 	
 	public void InitialCameraPosition()
