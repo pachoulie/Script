@@ -4,27 +4,27 @@ using System.Collections;
 public class Camera_Manager : MonoBehaviour {
 	
 	public static Camera_Manager Instance;
-	public Transform TargetLookAt;
+	public Transform TargetLookAt = null;
 	
-	public float Dist = 5f;
+	public float Dist = 6f;
 	public float MinDist = .25f;
-	public float MaxDist = 3f;
+	public float MaxDist = 10f;
 
-	public float MouseSpeed = 5f;
+	public float MouseSpeed = 4f;
 
-	public float MinY = -40f;
-	public float MaxY = 80f;
+	public float MinY = -10f;
+	public float MaxY = 40;
 
 	private float mouseX = 0f;
 	private float mouseY = 0f;
-	private float defaultDist = 0f;
+	private float defaultDist;
 
 	private Vector3 position = Vector3.zero;
 	
 	void Awake() {
 		Instance = this;
 	}
-
+	
 	void Start() {
 		// Validate camera position  using Mathf.Clamp
 		Dist = Mathf.Clamp (Dist, MinDist, MaxDist);
@@ -51,7 +51,7 @@ public class Camera_Manager : MonoBehaviour {
 		}
 
 		// Clamp/limit mouseY, store the result in the appropriate variable
-		mouseY = ClampAngle (mouseY, MinY, MaxY);
+		mouseY = LimitCameraPosition (mouseY, MinY, MaxY);
 
 		Vector3 direction = new Vector3 (0, 0, -Dist);
 		Quaternion rotation = Quaternion.Euler (mouseY, mouseX, 0);	
@@ -61,7 +61,17 @@ public class Camera_Manager : MonoBehaviour {
 		transform.position = position;
 		transform.LookAt (TargetLookAt);
 	}
-
+	
+	private float LimitCameraPosition (float angle, float min, float max) {
+    	while (angle < -360) {
+        	angle += 360;
+		}
+	    if (angle > 360) {
+	        angle %= 360;
+		}
+	    return Mathf.Clamp (angle, min, max);
+	}
+	
 	public void InitialCameraPosition()
 	{
 		// Set the default value for both mouse axis
@@ -73,8 +83,8 @@ public class Camera_Manager : MonoBehaviour {
 	}
 
 	public static void InitialCameraCheck() {
-		Camera_Manager cameraManager;		
 		GameObject mainCamera;
+		Camera_Manager cameraManager;		
 		GameObject targetLookAt;
 		
 		// If no main camera then create one
@@ -87,26 +97,19 @@ public class Camera_Manager : MonoBehaviour {
 		}
 		
 		// Attach Camera_Manager script to the MainCamera
-		mainCamera.AddComponent("Camera_Manager");
+		if (!mainCamera.GetComponent("Camera_Manager")) {
+			mainCamera.AddComponent("Camera_Manager");
+		}
 		cameraManager = mainCamera.GetComponent("Camera_Manager") as Camera_Manager;
 		
-		// Look for a targetLookAt, create one if it doesn't exist
-		targetLookAt = GameObject.Find("targetLookAt") as GameObject;
-		if (!targetLookAt) {
+		// Look for a attached targetLookAt, if none create one if it doesn't exist
+		if (!cameraManager.TargetLookAt) {
+			if (!(targetLookAt = GameObject.Find("targetLookAt") as GameObject)) {
 			targetLookAt = new GameObject("targetLookAt");
 			targetLookAt.transform.position = Vector3.zero;
-		}
-		
-		// Save the target look at value
-		cameraManager.TargetLookAt = targetLookAt.transform;
+			}
+			// Save the target look at value
+			cameraManager.TargetLookAt = targetLookAt.transform;
+		}	
 	}
-	
-	private float ClampAngle (float angle, float min, float max) {
-    	if (angle < -360)
-        	angle += 360;
-	    if (angle > 360)
-	        angle -= 360;
-	    return Mathf.Clamp (angle, min, max);
-	}
-
 }
