@@ -25,15 +25,17 @@ public class Camera_Manager : MonoBehaviour {
 	
 	// Need to rename those variables
 	private float desiredDistance = 0f;
-	private float VelocityDistance = 0f;
 	private Vector3 desiredPosition = Vector3.zero;
+	private Vector3 position = Vector3.zero;
+	
+	// This are the velocity of the smooth as reference
 	private float velocityX = 0f;
 	private float velocityY = 0f;
 	private float velocityZ = 0f;
-	private Vector3 position = Vector3.zero;
-	public float DistanceSmooth =0.05f;
-	public float X_Smooth = 0.05f;
-	public float Y_Smooth = 0.1f;
+	private float velocityDistance = 0f;
+	
+	// This is the resolution of the smooth
+	public float SmoothResolution = 0.01f;
 	
 	void Awake() {
 		Instance = this;
@@ -52,11 +54,8 @@ public class Camera_Manager : MonoBehaviour {
 
 	void LateUpdate() {
 		VerifyUserMouseInput ();
-				
 		SmoothCameraPosition ();
-
 		SmoothCameraAxis ();
-		
 		ApplyCameraPosition();
 	}
 	
@@ -90,9 +89,9 @@ public class Camera_Manager : MonoBehaviour {
 	void SmoothCameraAxis()
 	{
 		// Apply smoothing to each axis
-		var positionX = Mathf.SmoothDamp (position.x, desiredPosition.x, ref velocityX, X_Smooth);
-		var positionY = Mathf.SmoothDamp (position.y, desiredPosition.y, ref velocityY, Y_Smooth);
-		var positionZ = Mathf.SmoothDamp (position.z, desiredPosition.z, ref velocityZ, X_Smooth);
+		var positionX = Mathf.SmoothDamp (position.x, desiredPosition.x, ref velocityX, SmoothResolution);
+		var positionY = Mathf.SmoothDamp (position.y, desiredPosition.y, ref velocityY, SmoothResolution);
+		var positionZ = Mathf.SmoothDamp (position.z, desiredPosition.z, ref velocityZ, SmoothResolution);
 				
 		// Store smoothed axis as Vector3
 		position = new Vector3 (positionX, positionY, positionZ);
@@ -109,7 +108,7 @@ public class Camera_Manager : MonoBehaviour {
 	void SmoothCameraPosition()
 	{
 		// Apply smoothing to the position 
-		Dist = Mathf.SmoothDamp (Dist, desiredDistance, ref VelocityDistance, DistanceSmooth);
+		Dist = Mathf.SmoothDamp (Dist, desiredDistance, ref velocityDistance, SmoothResolution);
 
 		// Call CreatePositionVector() using the mouse inputs and smoothed position & Create a Vector3 to hold the result 
 		desiredPosition = CreatePositionVector (mouseY, mouseX, Dist);
