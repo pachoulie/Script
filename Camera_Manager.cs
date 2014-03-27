@@ -4,21 +4,37 @@ using System.Collections;
 public class Camera_Manager : MonoBehaviour {
 	
 	public static Camera_Manager Instance;
-	public Transform TargetLookAt = null;
+	public Transform TargetLookAt = null;	
 	
+	// DistanceVariables
 	public float Dist = 6f;
-	public float MinDist = .25f;
+	public float MinDist = 0.25f;
 	public float MaxDist = 10f;
 
+	// Speed for X, Y and Scroll of the Mouse
 	public float MouseSpeed = 4f;
-
+	
+	// Y limitation of the Camera
 	public float MinY = -10f;
 	public float MaxY = 40;
-
-	private float mouseX = 0f;
-	private float mouseY = 0f;
+	
+	// Mouse and Scroll variables
+	private float mouseX;
+	private float mouseY;
 	private float defaultDist;
-
+	
+	// Need to rename those variables
+	private float desiredDistance = 0f;
+	private float VelocityDistance = 0f;
+	private Vector3 desiredPosition = Vector3.zero;
+	private float velocityX = 0f;
+	private float velocityY = 0f;
+	private float velocityZ = 0f;
+	private Vector3 position = Vector3.zero;
+	public float DistanceSmooth =0.05f;
+	public float X_Smooth = 0.05f;
+	public float Y_Smooth = 0.1f;
+	
 	void Awake() {
 		Instance = this;
 	}
@@ -35,25 +51,15 @@ public class Camera_Manager : MonoBehaviour {
 	}
 
 	void LateUpdate() {
-		// Call VerifyUserMouseInput ()
 		VerifyUserMouseInput ();
-	}
+				
+		SmoothCameraPosition ();
 
-	Vector3 CreatePositionVector(float mouseX, float mouseY, Vector3 position)
-	{
-		//Create a new Vector3 to hold the given position
-		Vector3 distance = new Vector3 (0, 0, -Dist);
-		//Create a new Quaternion to hold the rotation data given
-		Quaternion rotation = Quaternion.Euler (mouseY, mouseX, 0);
-		//Return the character position plus the vector we have just created (rotation * distance)
-		return (position + rotation * distance);
+		SmoothCameraAxis ();
+		
+		ApplyCameraPosition();
 	}
-
-	void VerifiyUserMouseInput()
-	{
-		mouseY = Helper.CameraClamp(mouseY, MinY, MaxY);
-	}
-
+	
 	// Rotates the camera based on the users inputs
 	void VerifyUserMouseInput()
 	{
@@ -64,11 +70,7 @@ public class Camera_Manager : MonoBehaviour {
 		}
 
 		// Set mouseY as the Helper.CameraClamp
-		VerifiyUserMouseInput();
-
-		// Update Position
-		transform.position = CreatePositionVector(mouseX, mouseY, TargetLookAt.transform.position);
-		transform.LookAt(TargetLookAt);
+		mouseY = Helper.CameraClamp(mouseY, MinY, MaxY);
 	}
 	
 	public void InitialCameraPosition()
@@ -79,12 +81,52 @@ public class Camera_Manager : MonoBehaviour {
 		
 		// Set the validated initial camera position
 		Dist = defaultDist;
+		
+		// Sets the default parameters of the cameras position
+		desiredDistance = Dist;
 	}
 
-	public void SmoothCameraPosition() {
-
+	
+	void SmoothCameraAxis()
+	{
+		// Apply smoothing to each axis
+		var positionX = Mathf.SmoothDamp (position.x, desiredPosition.x, ref velocityX, X_Smooth);
+		var positionY = Mathf.SmoothDamp (position.y, desiredPosition.y, ref velocityY, Y_Smooth);
+		var positionZ = Mathf.SmoothDamp (position.z, desiredPosition.z, ref velocityZ, X_Smooth);
+				
+		// Store smoothed axis as Vector3
+		position = new Vector3 (positionX, positionY, positionZ);
+	}
+	
+	void ApplyCameraPosition() {
+		// Assign the Camera Position as the smoothed Vector3 in the previous method
+		transform.position = position;
+		
+		// Make the camera look at the target
+		transform.LookAt (TargetLookAt);
 	}
 
+	void SmoothCameraPosition()
+	{
+		// Apply smoothing to the position 
+		Dist = Mathf.SmoothDamp (Dist, desiredDistance, ref VelocityDistance, DistanceSmooth);
+
+		// Call CreatePositionVector() using the mouse inputs and smoothed position & Create a Vector3 to hold the result 
+		desiredPosition = CreatePositionVector (mouseY, mouseX, Dist);
+	}
+
+	Vector3 CreatePositionVector(float mouseX, float mouseY, float position)
+	{
+		// Create a new Vector3 to hold the given position
+		Vector3 distance = new Vector3 (0, 0, -position);
+
+		// Create a new Quaternion to hold the rotation data given
+		Quaternion rotation = Quaternion.Euler (mouseX, mouseY, 0);
+
+		// Return the character position plus the vector we have just created (rotation * distance)
+		return TargetLookAt.position + rotation * distance;
+	}
+	
 	public static void InitialCameraCheck() {
 		GameObject mainCamera;
 		Camera_Manager cameraManager;		
