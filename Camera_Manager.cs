@@ -19,8 +19,6 @@ public class Camera_Manager : MonoBehaviour {
 	private float mouseY = 0f;
 	private float defaultDist;
 
-	private Vector3 position = Vector3.zero;
-	
 	void Awake() {
 		Instance = this;
 	}
@@ -41,6 +39,21 @@ public class Camera_Manager : MonoBehaviour {
 		VerifyUserMouseInput ();
 	}
 
+	Vector3 CreatePositionVector(float mouseX, float mouseY, Vector3 position)
+	{
+		//Create a new Vector3 to hold the given position
+		Vector3 distance = new Vector3 (0, 0, -Dist);
+		//Create a new Quaternion to hold the rotation data given
+		Quaternion rotation = Quaternion.Euler (mouseY, mouseX, 0);
+		//Return the character position plus the vector we have just created (rotation * distance)
+		return (position + rotation * distance);
+	}
+
+	void VerifiyUserMouseInput()
+	{
+		mouseY = Helper.CameraClamp(mouseY, MinY, MaxY);
+	}
+
 	// Rotates the camera based on the users inputs
 	void VerifyUserMouseInput()
 	{
@@ -50,16 +63,12 @@ public class Camera_Manager : MonoBehaviour {
 			mouseY -= Input.GetAxis("Mouse Y") * MouseSpeed;
 		}
 
-		// Clamp/limit mouseY, store the result in the appropriate variable
-		mouseY = Helper.CameraClamp(mouseY, MinY, MaxY);
+		// Set mouseY as the Helper.CameraClamp
+		VerifiyUserMouseInput();
 
-		Vector3 direction = new Vector3 (0, 0, -Dist);
-		Quaternion rotation = Quaternion.Euler (mouseY, mouseX, 0);	
-		position = TargetLookAt.position + rotation * direction;
-		
 		// Update Position
-		transform.position = position;
-		transform.LookAt (TargetLookAt);
+		transform.position = CreatePositionVector(mouseX, mouseY, TargetLookAt.transform.position);
+		transform.LookAt(TargetLookAt);
 	}
 	
 	public void InitialCameraPosition()
@@ -70,6 +79,10 @@ public class Camera_Manager : MonoBehaviour {
 		
 		// Set the validated initial camera position
 		Dist = defaultDist;
+	}
+
+	public void SmoothCameraPosition() {
+
 	}
 
 	public static void InitialCameraCheck() {
