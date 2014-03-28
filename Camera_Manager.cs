@@ -22,7 +22,8 @@ public class Camera_Manager : MonoBehaviour {
 	private float mouseX;
 	private float mouseY;
 	private float defaultDist;
-
+	
+	// Need to rename those variables
 	private float desiredDistance = 0f;
 	private Vector3 verifiedUserCameraDistance = Vector3.zero;
 	private Vector3 currentCameraDistance = Vector3.zero;
