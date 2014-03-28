@@ -22,11 +22,10 @@ public class Camera_Manager : MonoBehaviour {
 	private float mouseX;
 	private float mouseY;
 	private float defaultDist;
-	
-	// Need to rename those variables
+
 	private float desiredDistance = 0f;
-	private Vector3 desiredPosition = Vector3.zero;
-	private Vector3 position = Vector3.zero;
+	private Vector3 verifiedUserCameraDistance = Vector3.zero;
+	private Vector3 currentCameraDistance = Vector3.zero;
 	
 	// This are the velocity of the smooth as reference
 	private float velocityX = 0f;
@@ -35,7 +34,7 @@ public class Camera_Manager : MonoBehaviour {
 	private float velocityDistance = 0f;
 	
 	// This is the resolution of the smooth
-	public float SmoothResolution = 0.01f;
+	public float smoothTime = 0.01f;
 	
 	void Awake() {
 		Instance = this;
@@ -89,17 +88,17 @@ public class Camera_Manager : MonoBehaviour {
 	void SmoothCameraAxis()
 	{
 		// Apply smoothing to each axis
-		var positionX = Mathf.SmoothDamp (position.x, desiredPosition.x, ref velocityX, SmoothResolution);
-		var positionY = Mathf.SmoothDamp (position.y, desiredPosition.y, ref velocityY, SmoothResolution);
-		var positionZ = Mathf.SmoothDamp (position.z, desiredPosition.z, ref velocityZ, SmoothResolution);
+		var positionX = Mathf.SmoothDamp (currentCameraDistance.x, verifiedUserCameraDistance.x, ref velocityX, smoothTime);
+		var positionY = Mathf.SmoothDamp (currentCameraDistance.y, verifiedUserCameraDistance.y, ref velocityY, smoothTime);
+		var positionZ = Mathf.SmoothDamp (currentCameraDistance.z, verifiedUserCameraDistance.z, ref velocityZ, smoothTime);
 				
 		// Store smoothed axis as Vector3
-		position = new Vector3 (positionX, positionY, positionZ);
+		currentCameraDistance = new Vector3 (positionX, positionY, positionZ);
 	}
 	
 	void ApplyCameraPosition() {
 		// Assign the Camera Position as the smoothed Vector3 in the previous method
-		transform.position = position;
+		transform.position = currentCameraDistance;
 		
 		// Make the camera look at the target
 		transform.LookAt (TargetLookAt);
@@ -108,10 +107,10 @@ public class Camera_Manager : MonoBehaviour {
 	void SmoothCameraPosition()
 	{
 		// Apply smoothing to the position 
-		Dist = Mathf.SmoothDamp (Dist, desiredDistance, ref velocityDistance, SmoothResolution);
+		Dist = Mathf.SmoothDamp (Dist, desiredDistance, ref velocityDistance, smoothTime);
 
 		// Call CreatePositionVector() using the mouse inputs and smoothed position & Create a Vector3 to hold the result 
-		desiredPosition = CreatePositionVector (mouseY, mouseX, Dist);
+		verifiedUserCameraDistance = CreatePositionVector (mouseY, mouseX, Dist);
 	}
 
 	Vector3 CreatePositionVector(float mouseX, float mouseY, float position)
