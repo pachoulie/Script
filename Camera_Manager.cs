@@ -21,6 +21,7 @@ public class Camera_Manager : MonoBehaviour {
 	// Mouse and Scroll variables
 	private float mouseX;
 	private float mouseY;
+	private float wheelSensitivity = 4f;
 	private float defaultDist;
 	
 	// Need to rename those variables
@@ -67,6 +68,10 @@ public class Camera_Manager : MonoBehaviour {
 			mouseX += Input.GetAxis("Mouse X") * MouseSpeed;
 			mouseY -= Input.GetAxis("Mouse Y") * MouseSpeed;
 		}
+
+		//Check the mouse scrollwheel for the camera (de)zoom
+		if (Input.GetAxis ("Mouse ScrollWheel") != 0.0f) 
+			desiredDistance = Mathf.Clamp(Dist - (wheelSensitivity * Input.GetAxis("Mouse ScrollWheel")), MinDist, MaxDist);
 
 		// Set mouseY as the Helper.CameraClamp
 		mouseY = Helper.CameraClamp(mouseY, MinY, MaxY);
