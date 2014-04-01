@@ -19,6 +19,8 @@ public class Character_Motor : MonoBehaviour {
 	private bool	Jumping = false;
 	public bool		InvertedModel = true;
 
+	public float	debug;
+
 	public bool	IsJumping { 
 		get { return Jumping; } 
 		set { Jumping = value; } 
@@ -32,14 +34,13 @@ public class Character_Motor : MonoBehaviour {
 	
 	public void ControlledUpdate()
 	{
-		//Call AlignCharacterToCameraDirection()
+		AlignCharacterToCameraDirection();
 		ProcessMotion();
 	}
 	
 	
 	public void ProcessMotion()
 {
-		Slide ();
 		// Save MoveVector.z and reapply as VerticalVelocity
 		ApplyGravity();
 
@@ -64,7 +65,7 @@ public class Character_Motor : MonoBehaviour {
 		if (magnitude > 1)
 			WorldPosition.Normalize();
 
-
+		WorldPosition = Slide (WorldPosition);
 
 		//Multiply magnifier
 		WorldPosition = WorldPosition * Speed;
@@ -74,19 +75,19 @@ public class Character_Motor : MonoBehaviour {
 		//Convert to unit/second
 		WorldPosition *= Time.deltaTime;
 
-
-
 		//Move character
 		Character_Manager.Instance.CharacterControllerComponent.Move(WorldPosition);
 	}
 	
 	public void AlignCharacterToCameraDirection()
 	{
+		if (MoveVector.x != 0 || MoveVector.z != 0) {
 		//Replace the characters Y rotation with the cameras Y rotation
 		Transform cameraRotation = Camera_Manager.Instance.transform;
 		transform.rotation = Quaternion.Euler(transform.eulerAngles.x,
 		                                      cameraRotation.eulerAngles.y,
 		                                      transform.eulerAngles.z);
+		}
 	}
 	
 	void ApplyGravity() {
@@ -118,10 +119,10 @@ public class Character_Motor : MonoBehaviour {
 		}
 	}
 
-	public void Slide(){
+	public Vector3 Slide(Vector3 WorldPosition){
 		//First check if the character is on the ground if not return;
 		if (!Character_Manager.Instance.CharacterControllerComponent.isGrounded)
-			return;
+			return WorldPosition;
 
 		//Zero out the slideVector
 		SlideVector = Vector3.zero;
@@ -131,20 +132,23 @@ public class Character_Motor : MonoBehaviour {
 		//Move our raycast position up one unit in Y and cast it down
 		if (Physics.Raycast(Character_Manager.Instance.CharacterControllerComponent.transform.position + Vector3.up, Vector3.down, out hitInfo)) {
 
-			//Get the raycastInfo for each normal and store it as the slideVector
-			SlideVector = new Vector3(hitInfo.normal.x, -hitInfo.normal.y, hitInfo.normal.z);
-			//////// a cleaner ////////
 			//Check if the information from the normal.y is less than the our slide limit
-			if (hitInfo.normal.y < 0.9f) {
-
+			if (hitInfo.normal.y < SlideLimit) {
 				//If it is, add our slideVector to our moveVector
-				MoveVector += SlideVector;
-			}
+				//Get the raycastInfo for each normal and store it as the slideVector
+				SlideVector = new Vector3(hitInfo.normal.x, -hitInfo.normal.y, hitInfo.normal.z);
 
-			//If the magnitude of our slideVector (slide speed) is too great the we should lose the controls of our character
-			if (SlideVector.magnitude < MaxMagnitudeSlide)
-				//If it is, set our moveVector to our slideVector
-				MoveVector = SlideVector;
+			}
 		}
+
+		//If the magnitude of our slideVector (slide speed) is too great the we should lose the controls of our character
+		if (SlideVector.sqrMagnitude < MaxMagnitudeSlide) {
+			//If it is, set our moveVector to our slideVector
+			WorldPosition += SlideVector;
+		} else {
+			WorldPosition = SlideVector;
+		}
+
+		return WorldPosition;
 	}
 }

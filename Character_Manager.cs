@@ -44,14 +44,12 @@ public class Character_Manager : MonoBehaviour {
 		//Add this motion to the MoveVector
 		if (Input.GetAxis("Vertical") > DeadZone || Input.GetAxis("Vertical") < -DeadZone) {
 			Character_Motor.Instance.MoveVector.z = Input.GetAxis("Vertical");
-			Character_Motor.Instance.AlignCharacterToCameraDirection();
 		}
 
 		//Check if the horizontal axis is outside the deadZone
 		//Add this motion to the MoveVector
 		if (Input.GetAxis("Horizontal") > DeadZone || Input.GetAxis("Horizontal") < -DeadZone) {
 			Character_Motor.Instance.MoveVector.x = Input.GetAxis("Horizontal");
-			Character_Motor.Instance.AlignCharacterToCameraDirection();
 		}
 	}
 	
