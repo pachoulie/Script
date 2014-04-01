@@ -130,7 +130,7 @@ public class Character_Motor : MonoBehaviour {
 		RaycastHit hitInfo;
 
 		//Move our raycast position up one unit in Y and cast it down
-		if (Physics.Raycast(Character_Manager.Instance.CharacterControllerComponent.transform.position + Vector3.up, Vector3.down, out hitInfo)) {
+		if (Physics.Raycast(transform.position + Vector3.up, Vector3.down, out hitInfo)) {
 
 			//Check if the information from the normal.y is less than the our slide limit
 			if (hitInfo.normal.y < SlideLimit) {
@@ -139,16 +139,14 @@ public class Character_Motor : MonoBehaviour {
 				SlideVector = new Vector3(hitInfo.normal.x, -hitInfo.normal.y, hitInfo.normal.z);
 
 			}
-		}
-
 		//If the magnitude of our slideVector (slide speed) is too great the we should lose the controls of our character
-		if (SlideVector.sqrMagnitude < MaxMagnitudeSlide) {
-			//If it is, set our moveVector to our slideVector
-			WorldPosition += SlideVector;
-		} else {
-			WorldPosition = SlideVector;
+			if (SlideVector.magnitude < MaxMagnitudeSlide) {
+				WorldPosition += SlideVector;
+			} else {
+				//If it is, set our moveVector to our slideVector
+				WorldPosition = SlideVector;
+			}
 		}
-
 		return WorldPosition;
 	}
 }
