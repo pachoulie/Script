@@ -64,7 +64,7 @@ public class Camera_Manager : MonoBehaviour {
 	void VerifyUserMouseInput()
 	{
 		//Check if the right mouse button is depressed (not required but useful for easy debugging)
-		if (!Input.GetMouseButton (1)) {
+		if (Input.GetMouseButton (1)) {
 			mouseX += Input.GetAxis("Mouse X") * MouseSpeed;
 			mouseY -= Input.GetAxis("Mouse Y") * MouseSpeed;
 		}

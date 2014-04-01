@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 // Class description
@@ -80,6 +80,10 @@ public class Character_Motor : MonoBehaviour {
 	public void AlignCharacterToCameraDirection()
 	{
 		//Replace the characters Y rotation with the cameras Y rotation
+		Transform cameraRotation = Camera_Manager.Instance.transform;
+		transform.rotation = Quaternion.Euler(transform.eulerAngles.x,
+		                                      cameraRotation.eulerAngles.y,
+		                                      transform.eulerAngles.z);
 	}
 	
 	void ApplyGravity() {
