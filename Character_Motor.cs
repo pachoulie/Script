@@ -9,10 +9,13 @@ public class Character_Motor : MonoBehaviour {
 	
 	public static	Character_Motor Instance;
 	public Vector3	MoveVector;
+	public Vector3	SlideVector;
 	public float	TerminalVelocity = 50f;
 	public float	JumpVelocity = 80f;
 	public float	Speed = 10f;
 	public float	Gravity = 9.8f;
+	public float	SlideLimit = 0.9f;
+	public float 	MaxMagnitudeSlide = 0.4f;
 	private bool	Jumping = false;
 	public bool		InvertedModel = true;
 
@@ -36,9 +39,9 @@ public class Character_Motor : MonoBehaviour {
 	
 	public void ProcessMotion()
 {
+		Slide ();
 		// Save MoveVector.z and reapply as VerticalVelocity
 		ApplyGravity();
-
 
 		//Convert Vector to World Space
 		Vector3 WorldPosition;
@@ -112,6 +115,36 @@ public class Character_Motor : MonoBehaviour {
 		{
 			MoveVector.y = JumpVelocity;
 			IsJumping = true;
+		}
+	}
+
+	public void Slide(){
+		//First check if the character is on the ground if not return;
+		if (!Character_Manager.Instance.CharacterControllerComponent.isGrounded)
+			return;
+
+		//Zero out the slideVector
+		SlideVector = Vector3.zero;
+
+		RaycastHit hitInfo;
+
+		//Move our raycast position up one unit in Y and cast it down
+		if (Physics.Raycast(Character_Manager.Instance.CharacterControllerComponent.transform.position + Vector3.up, Vector3.down, out hitInfo)) {
+
+			//Get the raycastInfo for each normal and store it as the slideVector
+			SlideVector = new Vector3(hitInfo.normal.x, -hitInfo.normal.y, hitInfo.normal.z);
+			//////// a cleaner ////////
+			//Check if the information from the normal.y is less than the our slide limit
+			if (hitInfo.normal.y < 0.9f) {
+
+				//If it is, add our slideVector to our moveVector
+				MoveVector += SlideVector;
+			}
+
+			//If the magnitude of our slideVector (slide speed) is too great the we should lose the controls of our character
+			if (SlideVector.magnitude < MaxMagnitudeSlide)
+				//If it is, set our moveVector to our slideVector
+				MoveVector = SlideVector;
 		}
 	}
 }
