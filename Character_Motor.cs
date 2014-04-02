@@ -19,8 +19,6 @@ public class Character_Motor : MonoBehaviour {
 	private bool	Jumping = false;
 	public bool		InvertedModel = true;
 
-	public float	debug;
-
 	public bool	IsJumping { 
 		get { return Jumping; } 
 		set { Jumping = value; } 

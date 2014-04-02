@@ -36,7 +36,7 @@ public class Camera_Manager : MonoBehaviour {
 	private float velocityDistance = 0f;
 	
 	// This is the resolution of the smooth
-	public float smoothTime = 0.01f;
+	public float smoothTime = 0.1f;
 	
 	void Awake() {
 		Instance = this;
