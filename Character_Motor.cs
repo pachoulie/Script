@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 // Class description
 // Convert the 33D Vector to world Space
@@ -12,12 +13,13 @@ public class Character_Motor : MonoBehaviour {
 	public Vector3	SlideVector;
 	public float	TerminalVelocity = 50f;
 	public float	JumpVelocity = 80f;
-	public float	Speed = 10f;
 	public float	Gravity = 9.8f;
 	public float	SlideLimit = 0.9f;
 	public float 	MaxMagnitudeSlide = 0.4f;
 	private bool	Jumping = false;
 	public bool		InvertedModel = true;
+
+	Dictionary<Animation_Manager.MotionStateList, float> speedLimits;
 
 	public bool	IsJumping { 
 		get { return Jumping; } 
@@ -28,12 +30,26 @@ public class Character_Motor : MonoBehaviour {
 	{
 		//Store an Instance of itself
 		Instance = this;
+		speedLimits = new Dictionary<Animation_Manager.MotionStateList, float>();
+
+		//Create variables for your different speeds
+		speedLimits.Add(Animation_Manager.MotionStateList.Backward, 5f);
+		speedLimits.Add(Animation_Manager.MotionStateList.Forward, 10f);
+		speedLimits.Add(Animation_Manager.MotionStateList.Left, 8f);
+		speedLimits.Add(Animation_Manager.MotionStateList.Right, 8f);
+		speedLimits.Add(Animation_Manager.MotionStateList.RightForward, 9f);
+		speedLimits.Add(Animation_Manager.MotionStateList.LeftForward, 9f);
+		speedLimits.Add(Animation_Manager.MotionStateList.RightBackward, 4f);
+		speedLimits.Add(Animation_Manager.MotionStateList.LeftBackward, 4f);
+		speedLimits.Add(Animation_Manager.MotionStateList.Stationary, 0f);
+
 	}
 	
 	public void ControlledUpdate()
 	{
 		AlignCharacterToCameraDirection();
 		ProcessMotion();
+		Animation_Manager.Instance.CurrentMotionState();
 	}
 	
 	
@@ -66,7 +82,7 @@ public class Character_Motor : MonoBehaviour {
 		WorldPosition = Slide (WorldPosition);
 
 		//Multiply magnifier
-		WorldPosition = WorldPosition * Speed;
+		WorldPosition = WorldPosition * SpeedLimit();
 
 		WorldPosition.y = savedY;
 
@@ -146,5 +162,15 @@ public class Character_Motor : MonoBehaviour {
 			}
 		}
 		return WorldPosition;
+	}
+
+	float SpeedLimit() {
+		//Our switch will be our CharacterMotionState assigned within Animation_Manager
+		//Our case will be MotionStateList 
+		//Set your speed accordingly
+		//Assign your sliding speed outside of your switch/case because it falls outside the MotionStateList
+		if (SlideVector.magnitude > MaxMagnitudeSlide)
+			return 15f;
+		return speedLimits[Animation_Manager.Instance.CharacterMotionState];
 	}
 }
