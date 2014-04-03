@@ -31,13 +31,13 @@ public class Animation_Manager : MonoBehaviour {
 		Vector3 MoveVector = Character_Motor.Instance.MoveVector;
 
 		if (MoveVector.z > 0)
-			direction+=1;
+			direction+= MotionStateList.Forward;
 		if (MoveVector.z < 0)
-			direction+=2;
+			direction+=MotionStateList.Backward;
 		if (MoveVector.x > 0)
-			direction+=8;
+			direction+=MotionStateList.Right;
 		if (MoveVector.x < 0)
-			direction+=4;
+			direction+=MotionStateList.Left;
 
 		//Check for combination directions. If the direction is forward and left/right then set the CharacterMotionState
 		//Else set the CharacterMotionState to forward
