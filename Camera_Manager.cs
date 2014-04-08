@@ -169,6 +169,7 @@ public class Camera_Manager : MonoBehaviour {
 		Vector3 cameraBackBuffer = cameraPositionAfterSmoothing + transform.forward * -camera.nearClipPlane;
 
 		//Calls our previous Helper function and stores our clip plane points as a struct
+
 		Helper.ClipPlaneStruct clipPlanePoints = Helper.FindNearClipPlanePositions(camera.transform.position);
 
 		//Uses this information to draw out a Debug.DrawLine
@@ -184,5 +185,7 @@ public class Camera_Manager : MonoBehaviour {
 		Debug.DrawLine(clipPlanePoints.UpperRight, clipPlanePoints.LowerRight);
 		Debug.DrawLine(clipPlanePoints.LowerRight, clipPlanePoints.LowerLeft);
 		Debug.DrawLine(clipPlanePoints.LowerLeft, clipPlanePoints.UpperLeft);
+
 	}
+	
 }

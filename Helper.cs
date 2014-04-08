@@ -20,37 +20,17 @@ public static class Helper {
 		return Mathf.Clamp(angle, min, max);
 	}	
 
-	public static ClipPlaneStruct FindNearClipPlanePositions(Vector3 pos) {
-		//Returns a value of type ClipPlaneStruct
-		//Finds each corner point of the Near Clip Plane using ScreenToWorldPoint and assign each to the struct
+	//Returns a value of type ClipPlaneStruct
+	//Finds each corner point of the Near Clip Plane using ScreenToWorldPoint and assign each to the struct
+	public static ClipPlaneStruct FindNearClipPlanePositions(Vector3 camPos) {
+
 		ClipPlaneStruct clipPlanePoints = new ClipPlaneStruct();
-		
-		if(Camera.main == null)
-		{return clipPlanePoints;}
-		
-		Transform transform = Camera.main.transform;
-		float halfFOV = (Camera.main.fieldOfView/2)*Mathf.Deg2Rad;
-		float aspect = Camera.main.aspect;
-		float distance = Camera.main.nearClipPlane;
-		float height = distance *Mathf.Tan(halfFOV);
-		float width = height * aspect;
-		
-		clipPlanePoints.LowerRight = pos + transform.right *width;
-		clipPlanePoints.LowerRight -= transform.up*height;
-		clipPlanePoints.LowerRight += transform.forward * distance;
-		
-		clipPlanePoints.LowerLeft = pos - transform.right *width;
-		clipPlanePoints.LowerLeft -= transform.up*height;
-		clipPlanePoints.LowerLeft += transform.forward * distance;
-		
-		clipPlanePoints.UpperRight = pos + transform.right *width;
-		clipPlanePoints.UpperRight += transform.up*height;
-		clipPlanePoints.UpperRight += transform.forward * distance;
-		
-		clipPlanePoints.UpperLeft = pos - transform.right *width;
-		clipPlanePoints.UpperLeft += transform.up*height;
-		clipPlanePoints.UpperLeft += transform.forward * distance;
-		
+
+		clipPlanePoints.LowerRight = Camera.main.ScreenToWorldPoint(new Vector3(Camera.main.pixelWidth, 0, Camera.main.camera.nearClipPlane));
+		clipPlanePoints.LowerLeft = Camera.main.ScreenToWorldPoint(new Vector3(0, 0, Camera.main.camera.nearClipPlane));
+		clipPlanePoints.UpperRight = Camera.main.ScreenToWorldPoint(new Vector3(Camera.main.pixelWidth, Camera.main.pixelHeight, Camera.main.camera.nearClipPlane));
+		clipPlanePoints.UpperLeft = Camera.main.ScreenToWorldPoint(new Vector3(0, Camera.main.pixelHeight, Camera.main.camera.nearClipPlane));
+
 		return clipPlanePoints;
 	}
 }
