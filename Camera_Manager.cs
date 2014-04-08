@@ -58,6 +58,7 @@ public class Camera_Manager : MonoBehaviour {
 		SmoothCameraPosition ();
 		SmoothCameraAxis ();
 		ApplyCameraPosition();
+		CameraCollisionPointsCheck(TargetLookAt.position, verifiedUserCameraDistance);
 	}
 	
 	// Rotates the camera based on the users inputs
@@ -160,5 +161,28 @@ public class Camera_Manager : MonoBehaviour {
 			// Save the target look at value
 			cameraManager.TargetLookAt = targetLookAt.transform;
 		}	
+	}
+
+	//Takes in our TargetLookAtTransform.position which is what we are looking at through our camera and smoothedCameraPosition
+	void CameraCollisionPointsCheck(Vector3 targetLookAtPosition, Vector3 cameraPositionAfterSmoothing) {
+		//Creates a cameraBackBuffer using the smoothedCameraPosition
+		Vector3 cameraBackBuffer = cameraPositionAfterSmoothing + transform.forward * -camera.nearClipPlane;
+
+		//Calls our previous Helper function and stores our clip plane points as a struct
+		Helper.ClipPlaneStruct clipPlanePoints = Helper.FindNearClipPlanePositions(camera.transform.position);
+
+		//Uses this information to draw out a Debug.DrawLine
+		//Draws a line (red) to the cameraBackBuffer
+		Debug.DrawLine(targetLookAtPosition, cameraBackBuffer, Color.red);
+		Debug.DrawLine(targetLookAtPosition, clipPlanePoints.UpperLeft);
+		Debug.DrawLine(targetLookAtPosition, clipPlanePoints.LowerLeft);
+		Debug.DrawLine(targetLookAtPosition, clipPlanePoints.UpperRight);
+		Debug.DrawLine(targetLookAtPosition, clipPlanePoints.LowerRight);
+		//Draws the rectangle (white) of the Near Clip Plane
+		//Draws the pyramid (white) connecting the targetLookAtPosition to the Near Clip Plane
+		Debug.DrawLine(clipPlanePoints.UpperLeft, clipPlanePoints.UpperRight);
+		Debug.DrawLine(clipPlanePoints.UpperRight, clipPlanePoints.LowerRight);
+		Debug.DrawLine(clipPlanePoints.LowerRight, clipPlanePoints.LowerLeft);
+		Debug.DrawLine(clipPlanePoints.LowerLeft, clipPlanePoints.UpperLeft);
 	}
 }
