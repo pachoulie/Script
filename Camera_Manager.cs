@@ -58,7 +58,7 @@ public class Camera_Manager : MonoBehaviour {
 		SmoothCameraPosition ();
 		SmoothCameraAxis ();
 		ApplyCameraPosition();
-		CameraCollisionPointsCheck(TargetLookAt.position, verifiedUserCameraDistance);
+		CameraCollisionPointsCheck(TargetLookAt.position, currentCameraDistance);
 	}
 	
 	// Rotates the camera based on the users inputs
@@ -175,11 +175,11 @@ public class Camera_Manager : MonoBehaviour {
 		//Uses this information to draw out a Debug.DrawLine
 		//Draws a line (red) to the cameraBackBuffer
 		Debug.DrawLine(targetLookAtPosition, cameraBackBuffer, Color.red);
+		//Draws the rectangle (white) of the Near Clip Plane
 		Debug.DrawLine(targetLookAtPosition, clipPlanePoints.UpperLeft);
 		Debug.DrawLine(targetLookAtPosition, clipPlanePoints.LowerLeft);
 		Debug.DrawLine(targetLookAtPosition, clipPlanePoints.UpperRight);
 		Debug.DrawLine(targetLookAtPosition, clipPlanePoints.LowerRight);
-		//Draws the rectangle (white) of the Near Clip Plane
 		//Draws the pyramid (white) connecting the targetLookAtPosition to the Near Clip Plane
 		Debug.DrawLine(clipPlanePoints.UpperLeft, clipPlanePoints.UpperRight);
 		Debug.DrawLine(clipPlanePoints.UpperRight, clipPlanePoints.LowerRight);
