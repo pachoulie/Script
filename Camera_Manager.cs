@@ -58,7 +58,8 @@ public class Camera_Manager : MonoBehaviour {
 		SmoothCameraPosition ();
 		SmoothCameraAxis ();
 		ApplyCameraPosition();
-		CameraCollisionPointsCheck(TargetLookAt.position, currentCameraDistance);
+		//CameraCollisionPointsCheck(TargetLookAt.position, currentCameraDistance);
+		ObstructedCameraCheck();
 	}
 	
 	// Rotates the camera based on the users inputs
@@ -164,7 +165,7 @@ public class Camera_Manager : MonoBehaviour {
 	}
 
 	//Takes in our TargetLookAtTransform.position which is what we are looking at through our camera and smoothedCameraPosition
-	void CameraCollisionPointsCheck(Vector3 targetLookAtPosition, Vector3 cameraPositionAfterSmoothing) {
+	float CameraCollisionPointsCheck(Vector3 targetLookAtPosition, Vector3 cameraPositionAfterSmoothing) {
 		//Creates a cameraBackBuffer using the smoothedCameraPosition
 		Vector3 cameraBackBuffer = cameraPositionAfterSmoothing + transform.forward * -camera.nearClipPlane;
 
@@ -186,6 +187,40 @@ public class Camera_Manager : MonoBehaviour {
 		Debug.DrawLine(clipPlanePoints.LowerRight, clipPlanePoints.LowerLeft);
 		Debug.DrawLine(clipPlanePoints.LowerLeft, clipPlanePoints.UpperLeft);
 
+		//Creates a variable called closestDistanceToCharacter
+		float closestDistanceToCharacter = -1f;
+		bool isObstructed = false;
+		//Use if statements to cycle through each of our points
+		//Make sure to ignore if your linecast collides with the player (by checking for “player” tags from the linecastInfo  collision in your code 
+		//You will need to tag all the children of the character to “Player” in the Unity Editor in order for your code to work
+		var hitInfo = new RaycastHit();
+
+		foreach (var field in typeof(Helper.ClipPlaneStruct).GetFields(System.Reflection.BindingFlags.Instance |
+		                                                               System.Reflection.BindingFlags.Public))
+		{
+			Vector3 planeCornerPosition = (Vector3)field.GetValue(clipPlanePoints);
+			//Use Physics.Linecast to cast from our targetLookAtPosition to our clip plane points (available from our helper method we just created)
+			if (Physics.Linecast(targetLookAtPosition, planeCornerPosition, out hitInfo)){
+				if (!hitInfo.collider.CompareTag("Player")){
+					//If our linecast collides with something, set the linecastInfo distance to the closestDistanceToCharacter variable
+					// check if any of the other points are less than the closestDistanceToCharacter. If this is true then we set that as our shortest distance
+					if (!isObstructed)
+						closestDistanceToCharacter = hitInfo.distance;
+					else
+						closestDistanceToCharacter = (hitInfo.distance < closestDistanceToCharacter ? hitInfo.distance : closestDistanceToCharacter);
+
+					isObstructed = true;
+				}
+			}
+		}
+
+		//Returns the value of closestDistanceToCharacter or a float of -1 if we have not collided with anything
+		return closestDistanceToCharacter;
 	}
-	
+
+	bool ObstructedCameraCheck (int obstructedCheckCount) {
+		//Create a variable called cameraObstructionBool to check if our camera is obstructed
+		bool cameraObstructionBool = false;
+		float closestDistanceToCharacter = 0f;
+	}
 }
