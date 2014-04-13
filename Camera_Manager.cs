@@ -55,11 +55,16 @@ public class Camera_Manager : MonoBehaviour {
 
 	void LateUpdate() {
 		VerifyUserMouseInput ();
-		SmoothCameraPosition ();
 		SmoothCameraAxis ();
+
+		int count = 0;
+		do {
+			//Within this loop we will call our SmoothCameraPosition() method 
+			SmoothCameraPosition();
+			count++;
+		} while (ObstructedCameraCheck(count));
+
 		ApplyCameraPosition();
-		//CameraCollisionPointsCheck(TargetLookAt.position, currentCameraDistance);
-		ObstructedCameraCheck();
 	}
 	
 	// Rotates the camera based on the users inputs
@@ -99,7 +104,7 @@ public class Camera_Manager : MonoBehaviour {
 		var positionX = Mathf.SmoothDamp (currentCameraDistance.x, verifiedUserCameraDistance.x, ref velocityX, smoothTime);
 		var positionY = Mathf.SmoothDamp (currentCameraDistance.y, verifiedUserCameraDistance.y, ref velocityY, smoothTime);
 		var positionZ = Mathf.SmoothDamp (currentCameraDistance.z, verifiedUserCameraDistance.z, ref velocityZ, smoothTime);
-				
+
 		// Store smoothed axis as Vector3
 		currentCameraDistance = new Vector3 (positionX, positionY, positionZ);
 	}
@@ -212,6 +217,7 @@ public class Camera_Manager : MonoBehaviour {
 					isObstructed = true;
 				}
 			}
+			return closestDistanceToCharacter;
 		}
 
 		//Returns the value of closestDistanceToCharacter or a float of -1 if we have not collided with anything
@@ -221,6 +227,30 @@ public class Camera_Manager : MonoBehaviour {
 	bool ObstructedCameraCheck (int obstructedCheckCount) {
 		//Create a variable called cameraObstructionBool to check if our camera is obstructed
 		bool cameraObstructionBool = false;
-		float closestDistanceToCharacter = 0f;
+		//Checks if the camera is obstructed by calling our CameraCollisionPointsCheck()
+		//Store the result as closestDistanceToCharacter
+		float closestDistanceToCharacter = CameraCollisionPointsCheck(TargetLookAt.position, verifiedUserCameraDistance);
+		float distance = 0f;
+
+		//If obstructed
+		if (closestDistanceToCharacter != -1)
+		{
+			if (obstructedCheckCount > 10){
+				//If we have passed our limit then we need to move our Dist directly to our closestDistanceToCharacter minus our cameras back buffer
+				Dist = closestDistanceToCharacter - Camera.main.nearClipPlane;
+				//Set our desiredDistance (our clamped camera position value) to our Dist
+				desiredDistance = Dist;
+			}
+			//Attempt to move the camera CurrentCameraDistance forward
+			else
+			{
+				cameraObstructionBool = true;
+				//Move the Dist forward by a set value
+				Dist -= 0.5f;
+				if (Dist < 0f)
+					Dist = 0f;
+			}
+		}
+		return cameraObstructionBool;
 	}
 }
