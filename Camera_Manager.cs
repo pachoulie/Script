@@ -7,9 +7,10 @@ public class Camera_Manager : MonoBehaviour {
 	public Transform TargetLookAt = null;	
 	
 	// DistanceVariables
-	public float Dist = 6f;
+	public float verifiedCameraDistance = 6f;
 	public float MinDist = 0.25f;
 	public float MaxDist = 10f;
+	public float cameraDistanceBeforeObstruction = 0f;
 
 	// Speed for X, Y and Scroll of the Mouse
 	public float MouseSpeed = 4f;
@@ -23,11 +24,11 @@ public class Camera_Manager : MonoBehaviour {
 	private float mouseY;
 	private float wheelSensitivity = 4f;
 	private float defaultDist;
-	
-	// Need to rename those variables
+
 	private float desiredDistance = 0f;
-	private Vector3 verifiedUserCameraDistance = Vector3.zero;
+	private Vector3 verifiedCameraPosition = Vector3.zero;
 	private Vector3 currentCameraDistance = Vector3.zero;
+	private Vector3 cameraPositionBeforeObstruction = Vector3.zero;
 	
 	// This are the velocity of the smooth as reference
 	private float velocityX = 0f;
@@ -36,7 +37,9 @@ public class Camera_Manager : MonoBehaviour {
 	private float velocityDistance = 0f;
 	
 	// This is the resolution of the smooth
-	public float smoothTime = 0.1f;
+	public float smoothTimeSwitch = 0.1f;
+	public float ObstructedSmoothTime = 0.2f;
+	public float UnobstructedSmoothTime = 0.1f;
 	
 	void Awake() {
 		Instance = this;
@@ -44,10 +47,10 @@ public class Camera_Manager : MonoBehaviour {
 	
 	void Start() {
 		// Validate camera position  using Mathf.Clamp
-		Dist = Mathf.Clamp (Dist, MinDist, MaxDist);
+		verifiedCameraDistance = Mathf.Clamp (verifiedCameraDistance, MinDist, MaxDist);
 		
 		// Save the validated camera position
-		defaultDist = Dist;
+		defaultDist = verifiedCameraDistance;
 		
 		// Call InitialCameraPosition()
 		InitialCameraPosition ();
@@ -77,11 +80,16 @@ public class Camera_Manager : MonoBehaviour {
 		}
 
 		//Check the mouse scrollwheel for the camera (de)zoom
-		if (Input.GetAxis ("Mouse ScrollWheel") != 0.0f) 
-			desiredDistance = Mathf.Clamp(Dist - (wheelSensitivity * Input.GetAxis("Mouse ScrollWheel")), MinDist, MaxDist);
-
+		if (Input.GetAxis ("Mouse ScrollWheel") != 0.0f){
+			desiredDistance = Mathf.Clamp(verifiedCameraDistance - (wheelSensitivity * Input.GetAxis("Mouse ScrollWheel")), MinDist, MaxDist);
+			//Assign our cameraDistanceBeforeObstruction to our verifiedUserCameraDistance (clamped value after user scroll wheel input)
+			cameraDistanceBeforeObstruction = desiredDistance;
+		}
 		// Set mouseY as the Helper.CameraClamp
 		mouseY = Helper.CameraClamp(mouseY, MinY, MaxY);
+
+		//We also need to assign our smoothTimeSwitch to our UnobstructedSmoothTime
+		smoothTimeSwitch = UnobstructedSmoothTime;
 	}
 	
 	public void InitialCameraPosition()
@@ -91,19 +99,22 @@ public class Camera_Manager : MonoBehaviour {
 		mouseY = 10f;
 		
 		// Set the validated initial camera position
-		Dist = defaultDist;
+		verifiedCameraDistance = defaultDist;
 		
 		// Sets the default parameters of the cameras position
-		desiredDistance = Dist;
+		desiredDistance = verifiedCameraDistance;
+
+		//Assign our cameraDistanceBeforeObstruction to our verifiedCameraDistance (initial clamped value) to give an initial value
+		cameraDistanceBeforeObstruction = verifiedCameraDistance;
 	}
 
 	
 	void SmoothCameraAxis()
 	{
 		// Apply smoothing to each axis
-		var positionX = Mathf.SmoothDamp (currentCameraDistance.x, verifiedUserCameraDistance.x, ref velocityX, smoothTime);
-		var positionY = Mathf.SmoothDamp (currentCameraDistance.y, verifiedUserCameraDistance.y, ref velocityY, smoothTime);
-		var positionZ = Mathf.SmoothDamp (currentCameraDistance.z, verifiedUserCameraDistance.z, ref velocityZ, smoothTime);
+		var positionX = Mathf.SmoothDamp (currentCameraDistance.x, verifiedCameraPosition.x, ref velocityX, smoothTimeSwitch );
+		var positionY = Mathf.SmoothDamp (currentCameraDistance.y, verifiedCameraPosition.y, ref velocityY, smoothTimeSwitch );
+		var positionZ = Mathf.SmoothDamp (currentCameraDistance.z, verifiedCameraPosition.z, ref velocityZ, smoothTimeSwitch );
 
 		// Store smoothed axis as Vector3
 		currentCameraDistance = new Vector3 (positionX, positionY, positionZ);
@@ -119,11 +130,12 @@ public class Camera_Manager : MonoBehaviour {
 
 	void SmoothCameraPosition()
 	{
+		EvaluateCameraDistanceBeforeObstruction();
 		// Apply smoothing to the position 
-		Dist = Mathf.SmoothDamp (Dist, desiredDistance, ref velocityDistance, smoothTime);
+		verifiedCameraDistance = Mathf.SmoothDamp (verifiedCameraDistance, desiredDistance, ref velocityDistance, smoothTimeSwitch );
 
 		// Call CreatePositionVector() using the mouse inputs and smoothed position & Create a Vector3 to hold the result 
-		verifiedUserCameraDistance = CreatePositionVector (mouseY, mouseX, Dist);
+		verifiedCameraPosition = CreatePositionVector (mouseY, mouseX, verifiedCameraDistance);
 	}
 
 	Vector3 CreatePositionVector(float mouseX, float mouseY, float position)
@@ -229,28 +241,48 @@ public class Camera_Manager : MonoBehaviour {
 		bool cameraObstructionBool = false;
 		//Checks if the camera is obstructed by calling our CameraCollisionPointsCheck()
 		//Store the result as closestDistanceToCharacter
-		float closestDistanceToCharacter = CameraCollisionPointsCheck(TargetLookAt.position, verifiedUserCameraDistance);
+		float closestDistanceToCharacter = CameraCollisionPointsCheck(TargetLookAt.position, verifiedCameraPosition);
 		float distance = 0f;
 
 		//If obstructed
 		if (closestDistanceToCharacter != -1)
 		{
+			//Set our smoothTimeSwitch to ObstructedSmoothTime
+			smoothTimeSwitch = ObstructedSmoothTime;
 			if (obstructedCheckCount > 10){
 				//If we have passed our limit then we need to move our Dist directly to our closestDistanceToCharacter minus our cameras back buffer
-				Dist = closestDistanceToCharacter - Camera.main.nearClipPlane;
+				verifiedCameraDistance = closestDistanceToCharacter - Camera.main.nearClipPlane;
 				//Set our desiredDistance (our clamped camera position value) to our Dist
-				desiredDistance = Dist;
+				desiredDistance = verifiedCameraDistance;
 			}
 			//Attempt to move the camera CurrentCameraDistance forward
 			else
 			{
 				cameraObstructionBool = true;
 				//Move the Dist forward by a set value
-				Dist -= 0.5f;
-				if (Dist < 0f)
-					Dist = 0f;
+				verifiedCameraDistance -= 0.5f;
+				if (verifiedCameraDistance < 0f)
+					verifiedCameraDistance = 0f;
 			}
 		}
 		return cameraObstructionBool;
+	}
+
+	void EvaluateCameraDistanceBeforeObstruction() {
+		float closestDistanceToCharacter = 0f;
+
+		//Check if our verifiedUserCameraDistance is less than our cameraDistanceBeforeObstruction. If it is then the camera has been adjusted because it was obstructed meaning we need to save the original position
+		//This change of verifiedUserCameraDistance occurs within ObstructedCameraCheck()
+		//We need to store our camera’s position before the adjustment so using our method CreatePositionVector() we can send it our mouse X and Y and also our cameraDistanceBeforeObstruction 
+		//We will store the returned value as cameraPositionBeforeObstruction
+		if (verifiedCameraDistance < cameraDistanceBeforeObstruction) {
+			cameraPositionBeforeObstruction = CreatePositionVector(mouseY, mouseX, cameraDistanceBeforeObstruction);
+			//Once we have our cameraPositionBeforeObstruction we can use our method CameraCollisionPointsCheck() which returns the closestDistanceToCharacter from this position
+			closestDistanceToCharacter = CameraCollisionPointsCheck(TargetLookAt.position, cameraPositionBeforeObstruction);
+			//If this closestDistanceToCharacter is equal to -1 then it is not being obstructed, therefore we can move our camera back to this point
+			//To do this we can set the verifiedUserCameraDistance to the cameraDistanceBeforeObstruction
+			if (closestDistanceToCharacter == -1)
+				verifiedCameraDistance = cameraDistanceBeforeObstruction;
+		}
 	}
 }
