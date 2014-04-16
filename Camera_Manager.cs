@@ -8,7 +8,7 @@ public class Camera_Manager : MonoBehaviour {
 	
 	// DistanceVariables
 	public float verifiedCameraDistance = 6f;
-	public float MinDist = 0.25f;
+	public float MinDist = 0.5f;
 	public float MaxDist = 10f;
 	public float cameraDistanceBeforeObstruction = 0f;
 
@@ -37,9 +37,10 @@ public class Camera_Manager : MonoBehaviour {
 	
 	// This is the resolution of the smooth
 	public float smoothTimeSwitch = 0.1f;
-	public float ObstructedSmoothTime = 0.2f;
+	public float ObstructedSmoothTime = 1;
 	public float UnobstructedSmoothTime = 0.1f;
-	
+	public float MouseSmoothTime = 0.1f;
+
 	void Awake() {
 		Instance = this;
 	}
@@ -56,6 +57,7 @@ public class Camera_Manager : MonoBehaviour {
 
 	void LateUpdate() {
 		VerifyUserMouseInput ();
+
 		SmoothCameraAxis ();
 
 		int count = 0;
@@ -64,6 +66,8 @@ public class Camera_Manager : MonoBehaviour {
 			SmoothCameraPosition();
 			count++;
 		} while (ObstructedCameraCheck(count));
+
+
 
 		ApplyCameraPosition();
 	}
@@ -82,12 +86,13 @@ public class Camera_Manager : MonoBehaviour {
 			desiredDistance = Mathf.Clamp(verifiedCameraDistance - (wheelSensitivity * Input.GetAxis("Mouse ScrollWheel")), MinDist, MaxDist);
 			//Assign our cameraDistanceBeforeObstruction to our verifiedUserCameraDistance (clamped value after user scroll wheel input)
 			cameraDistanceBeforeObstruction = desiredDistance;
+
+			//We also need to assign our smoothTimeSwitch to our UnobstructedSmoothTime
+			smoothTimeSwitch = UnobstructedSmoothTime;
 		}
+
 		// Set mouseY as the Helper.CameraClamp
 		mouseY = Helper.CameraClamp(mouseY, MinY, MaxY);
-
-		//We also need to assign our smoothTimeSwitch to our UnobstructedSmoothTime
-		smoothTimeSwitch = UnobstructedSmoothTime;
 	}
 	
 	public void InitialCameraPosition()
@@ -240,8 +245,6 @@ public class Camera_Manager : MonoBehaviour {
 		//If obstructed
 		if (closestDistanceToCharacter != -1)
 		{
-			//Set our smoothTimeSwitch to ObstructedSmoothTime
-			smoothTimeSwitch = ObstructedSmoothTime;
 			if (obstructedCheckCount > 10){
 				//If we have passed our limit then we need to move our Dist directly to our closestDistanceToCharacter minus our cameras back buffer
 				verifiedCameraDistance = closestDistanceToCharacter - Camera.main.nearClipPlane;
@@ -254,9 +257,11 @@ public class Camera_Manager : MonoBehaviour {
 				cameraObstructionBool = true;
 				//Move the Dist forward by a set value
 				verifiedCameraDistance -= 0.5f;
-				if (verifiedCameraDistance < 0.25f)
-					verifiedCameraDistance = 0.25f;
+				if (verifiedCameraDistance < MinDist)
+					verifiedCameraDistance = MinDist;
 			}
+			//Set our smoothTimeSwitch to ObstructedSmoothTime
+			smoothTimeSwitch = ObstructedSmoothTime;
 		}
 		return cameraObstructionBool;
 	}
@@ -273,8 +278,9 @@ public class Camera_Manager : MonoBehaviour {
 
 			//If this closestDistanceToCharacter is equal to -1 then it is not being obstructed, therefore we can move our camera back to this point
 			//To do this we can set the verifiedUserCameraDistance to the cameraDistanceBeforeObstruction
-			if (closestDistanceToCharacter == -1)
+			if (closestDistanceToCharacter == -1) {
 				verifiedCameraDistance = cameraDistanceBeforeObstruction;
+			}
 		}
 	}
 }
