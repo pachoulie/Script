@@ -28,7 +28,6 @@ public class Camera_Manager : MonoBehaviour {
 	private float desiredDistance = 0f;
 	private Vector3 verifiedCameraPosition = Vector3.zero;
 	private Vector3 currentCameraDistance = Vector3.zero;
-	private Vector3 cameraPositionBeforeObstruction = Vector3.zero;
 	
 	// This are the velocity of the smooth as reference
 	private float velocityX = 0f;
@@ -51,8 +50,7 @@ public class Camera_Manager : MonoBehaviour {
 		
 		// Save the validated camera position
 		defaultDist = verifiedCameraDistance;
-		
-		// Call InitialCameraPosition()
+
 		InitialCameraPosition ();
 	}
 
@@ -217,20 +215,16 @@ public class Camera_Manager : MonoBehaviour {
 		{
 			Vector3 planeCornerPosition = (Vector3)field.GetValue(clipPlanePoints);
 			//Use Physics.Linecast to cast from our targetLookAtPosition to our clip plane points (available from our helper method we just created)
-			if (Physics.Linecast(targetLookAtPosition, planeCornerPosition, out hitInfo)){
-				if (!hitInfo.collider.CompareTag("Player")){
+			if (Physics.Linecast(targetLookAtPosition, clipPlanePoints.UpperLeft, out hitInfo) && hitInfo.collider.tag != "Player"){
 					//If our linecast collides with something, set the linecastInfo distance to the closestDistanceToCharacter variable
 					// check if any of the other points are less than the closestDistanceToCharacter. If this is true then we set that as our shortest distance
-					if (!isObstructed)
-						closestDistanceToCharacter = hitInfo.distance;
-					else
-						closestDistanceToCharacter = (hitInfo.distance < closestDistanceToCharacter ? hitInfo.distance : closestDistanceToCharacter);
-
-					isObstructed = true;
+					closestDistanceToCharacter = hitInfo.distance;
 				}
 			}
-			return closestDistanceToCharacter;
-		}
+		
+		if (Physics.Linecast(targetLookAtPosition, cameraPositionAfterSmoothing + transform.forward * -camera.nearClipPlane, out hitInfo) && hitInfo.collider.tag != "Player")
+			if (hitInfo.distance < closestDistanceToCharacter || closestDistanceToCharacter == -1)
+				closestDistanceToCharacter = hitInfo.distance;
 
 		//Returns the value of closestDistanceToCharacter or a float of -1 if we have not collided with anything
 		return closestDistanceToCharacter;
@@ -242,7 +236,6 @@ public class Camera_Manager : MonoBehaviour {
 		//Checks if the camera is obstructed by calling our CameraCollisionPointsCheck()
 		//Store the result as closestDistanceToCharacter
 		float closestDistanceToCharacter = CameraCollisionPointsCheck(TargetLookAt.position, verifiedCameraPosition);
-		float distance = 0f;
 
 		//If obstructed
 		if (closestDistanceToCharacter != -1)
@@ -261,24 +254,23 @@ public class Camera_Manager : MonoBehaviour {
 				cameraObstructionBool = true;
 				//Move the Dist forward by a set value
 				verifiedCameraDistance -= 0.5f;
-				if (verifiedCameraDistance < 0f)
-					verifiedCameraDistance = 0f;
+				if (verifiedCameraDistance < 0.25f)
+					verifiedCameraDistance = 0.25f;
 			}
 		}
 		return cameraObstructionBool;
 	}
 
 	void EvaluateCameraDistanceBeforeObstruction() {
-		float closestDistanceToCharacter = 0f;
-
 		//Check if our verifiedUserCameraDistance is less than our cameraDistanceBeforeObstruction. If it is then the camera has been adjusted because it was obstructed meaning we need to save the original position
 		//This change of verifiedUserCameraDistance occurs within ObstructedCameraCheck()
-		//We need to store our camera’s position before the adjustment so using our method CreatePositionVector() we can send it our mouse X and Y and also our cameraDistanceBeforeObstruction 
-		//We will store the returned value as cameraPositionBeforeObstruction
 		if (verifiedCameraDistance < cameraDistanceBeforeObstruction) {
-			cameraPositionBeforeObstruction = CreatePositionVector(mouseY, mouseX, cameraDistanceBeforeObstruction);
+			//We need to store our camera’s position before the adjustment so using our method CreatePositionVector() we can send it our mouse X and Y and also our cameraDistanceBeforeObstruction 
+			Vector3 cameraPositionBeforeObstruction = CreatePositionVector(mouseY, mouseX, cameraDistanceBeforeObstruction);
 			//Once we have our cameraPositionBeforeObstruction we can use our method CameraCollisionPointsCheck() which returns the closestDistanceToCharacter from this position
-			closestDistanceToCharacter = CameraCollisionPointsCheck(TargetLookAt.position, cameraPositionBeforeObstruction);
+			//We will store the returned value as cameraPositionBeforeObstruction
+			float closestDistanceToCharacter = CameraCollisionPointsCheck(TargetLookAt.position, cameraPositionBeforeObstruction);
+
 			//If this closestDistanceToCharacter is equal to -1 then it is not being obstructed, therefore we can move our camera back to this point
 			//To do this we can set the verifiedUserCameraDistance to the cameraDistanceBeforeObstruction
 			if (closestDistanceToCharacter == -1)
